@@ -8,7 +8,7 @@ version = "2025.1.28-dev2"
 requires-python = "== 3.10.*"
 dynamic = ["dependencies"]
 keywords = ["LLM", "MT", "translation", "inference", "training"]
-description = "Experiments with LLMs as pertaining to the Welsh Language."
+description = "A aibrary and CLI for performing experiments with LLMs."
 classifiers = [
   "Programming Language :: Python :: 3.10",
   "Topic :: Text Processing :: Linguistic",
@@ -34,7 +34,7 @@ email = "m.russell@bangor.ac.uk"
 text = "MIT"
 
 [project.readme]
-file = "docs/README.md"
+file = "README.md"
 content-type = "text/markdown"
 
 [project.optional-dependencies]
