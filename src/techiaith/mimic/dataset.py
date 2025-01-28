@@ -43,8 +43,8 @@ def generate_items(
         yield {"text": entry[text_column]}
 
 
-def make_project_name(base_model: str, prefix="autotrain-") -> str:
-    name = base_model.replace("/", "--").lower()
+def make_project_name(base_model: str, prefix="") -> str:
+    name = "".join(ch if any([ch.isalnum(), ch == "-"]) else "--" for ch in base_model)
     return f"{prefix}{name}"
 
 
