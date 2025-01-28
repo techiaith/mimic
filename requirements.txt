@@ -1,0 +1,12 @@
+autotrain-advanced>=0.8
+datachain>=0.7
+datasets>=3.2
+dvclive>=3.48
+gradio>=5.13
+jsonlines>=4.0
+ninja>=1.11.1.2
+polars>=1.17.1
+pydantic>=2.10.4
+srsly==2.5.0
+typer>=0.15
+unsloth==2024.12.4

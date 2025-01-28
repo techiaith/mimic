@@ -1,0 +1,100 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "techiaith-mimic"
+version = "2025.1.28-dev1"
+requires-python = "== 3.10.*"
+dynamic = ["dependencies"]
+keywords = ["LLM", "MT", "translation", "inference", "training"]
+description = "Experiments with LLMs as pertaining to the Welsh Language."
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Text Processing :: Linguistic",
+  "Topic :: Software Development :: Pre-processors",
+  "Topic :: Software Development :: Localization",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.package-data]
+"techiaith.mimic" = ["*.md", "*.jsonl"]
+
+[[project.authors]]
+name = "Matt Russell"
+email = "m.russell@bangor.ac.uk"
+
+[project.license]
+text = "MIT"
+
+[project.readme]
+file = "docs/README.pypkg.md"
+content-type = "text/markdown"
+
+[project.optional-dependencies]
+dev = [
+  "black>=23.0,<24.0",
+  "isort>=5.13.2,<5.14",
+  "ruff",
+  "pytest",
+  "mypy>=1.0,<1.11",
+  "packaging>=23.0",
+  "twine>=1.11.0",
+  "setuptools",
+  "toml>=0.10.2",
+  "wheel",
+]
+test = ["pytest-cov", "pytest"]
+
+[project.scripts]
+mimic = "techiaith.mimic.cli:app"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+
+[tool.mypy]
+mypy_path = "src"
+python_version = "3.10"
+warn_unused_configs = true
+allow_redefinition = false
+explicit_package_bases = true
+ignore_missing_imports = true
+implicit_reexport = false
+namespace_packages = true
+no_implicit_optional = true
+plugins = ["pydantic.mypy"]
+
+[tool.black]
+include = "\\.pyi?$"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.pyright]
+reportPrivateImportUsage = false
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  "ignore:.*imp module.*deprecated",
+  "ignore:.*invalid escape sequence:DeprecationWarning",
+  "ignore:.*declare_namespace.*ruamel:DeprecationWarning",
+]
+[[tool.pytest.ini_options.markers]]
+issue = "reference specific issue"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
