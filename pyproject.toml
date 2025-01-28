@@ -34,7 +34,7 @@ email = "m.russell@bangor.ac.uk"
 text = "MIT"
 
 [project.readme]
-file = "docs/README.pypkg.md"
+file = "docs/README.md"
 content-type = "text/markdown"
 
 [project.optional-dependencies]
