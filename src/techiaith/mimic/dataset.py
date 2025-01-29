@@ -10,6 +10,7 @@ import typer
 from datasets import Dataset, concatenate_datasets, load_dataset
 
 from . import schema
+from .utils import autotrain_project_name_for_model_id
 
 
 def _parse_train_args(train_args: list[str]) -> dict[str, t.Any]:
@@ -43,11 +44,6 @@ def generate_items(
         yield {"text": entry[text_column]}
 
 
-def make_project_name(base_model: str, prefix="") -> str:
-    name = "".join(ch if any([ch.isalnum(), ch == "-"]) else "--" for ch in base_model)
-    return f"{prefix}{name}"
-
-
 def configure_autotrain(
     dataset_dir: Path,
     base_model: str,
@@ -59,7 +55,7 @@ def configure_autotrain(
     hf_token = os.environ.get("HF_TOKEN")
     hub = schema.Hub(username=hf_username, token=hf_token, push_to_hub=push_to_hub)
     params = schema.TrainParams(**train_params)  # type: ignore
-    project_name = make_project_name(base_model)
+    project_name = autotrain_project_name_for_model_id(base_model)
     cfg = schema.AutoTrainConfig(
         base_model=base_model,
         project_name=project_name,
@@ -121,7 +117,7 @@ def build(
     ctx: typer.Context,
     datasources_config: Path = typer.Option(default="data-sources.yaml"),
     dataset_dir: Path = typer.Option(default="data/dataset"),
-    dataset_filename: str = typer.Option(default="train.jsonl")
+    dataset_filename: str = typer.Option(default="train.jsonl"),
 ) -> None:
     dataset_dir.mkdir(exist_ok=True)
     dataset = build_ctp_dataset(datasources_config)
