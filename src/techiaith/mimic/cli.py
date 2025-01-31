@@ -13,6 +13,11 @@ train = typer.Typer()
 app.add_typer(train, name="train")
 
 @train.command()
+def project_name(base_model_id: str) -> None:
+    print(utils.autotrain_project_name_for_model_id(base_model_id))
+
+
+@train.command()
 def setup(base_model_id: str) -> None:
     params = srsly.read_yaml("params.yaml")
     params["base_model"] = base_model_id
@@ -21,7 +26,7 @@ def setup(base_model_id: str) -> None:
 
 
 @train.command()
-def upload_model_to_hf(name_suffix: str = "ctp-cy"):
+def upload_model_to_hf(name_suffix: str = "ctp-cy") -> None:
     repo_id = utils.techiaith_model_name()
     model_path = utils.trained_model_path()
     token_path = Path("~/.cache/huggingface/token").expanduser()
