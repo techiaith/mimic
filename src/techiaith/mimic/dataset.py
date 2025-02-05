@@ -9,7 +9,7 @@ import srsly
 import typer
 from datasets import Dataset, concatenate_datasets, load_dataset
 
-from . import schema
+from . import dataset_metadata, schema
 from .utils import autotrain_project_name_for_model_id
 
 
@@ -92,6 +92,7 @@ def build_ctp_dataset(datasources_config: Path) -> Dataset:
 app = typer.Typer()
 ctp = typer.Typer()
 app.add_typer(ctp, name="ctp")
+app.add_typer(dataset_metadata.app, name="metadata")
 
 
 @ctp.command(
