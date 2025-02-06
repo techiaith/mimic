@@ -123,5 +123,6 @@ def table(
         df = pl.DataFrame(ds_info)
         df = df.sort(by="dataset_size", descending=False)
         print(df)
-        if write_tsv:
+        if write_tsv:            
             df.write_csv(outfile_name, include_header=True, separator="\t")
+            print("Output written to file:", outfile_name)
