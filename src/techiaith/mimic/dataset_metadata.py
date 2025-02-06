@@ -9,6 +9,13 @@ from huggingface_hub import hf_api
 DatasetMetadata = dict[str, t.Any] | dict[str, str]
 
 
+def count_examples(card_data: dict) -> int:
+    splits = card_data.get("dataset_info", {}).get("splits", [])
+    if splits:
+        return sum(split["num_examples"] for split in splits)
+    return 0
+
+
 def parse_dataset_ids(ds_ids_file: t.TextIO) -> list[str]:
     lines = list(filter(None, map(str.strip, ds_ids_file.readlines())))
     ds_ids = [
@@ -55,6 +62,7 @@ def metadata_from_card_data(card_data: hf_api.DatasetCardData) -> DatasetMetadat
         licenses=licenses,
         task_ids=task_ids,
         task_categories=task_categories,
+        num_examples=count_examples(card_data.to_dict()),
     )
 
 
@@ -65,6 +73,7 @@ def metadata_from_project_dataset(ds_id: str) -> DatasetMetadata:
     metadata_item = dict(
         dataset=ds_id,
         dataset_size=dataset_size,
+        num_examples=count_examples(card_data),
     )
     if ds_info.card_data is not None:
         metadata_item.update(metadata_from_card_data(ds_info.card_data).items())
@@ -121,8 +130,8 @@ def table(
         tbl_hide_dataframe_shape=True,
     ):
         df = pl.DataFrame(ds_info)
-        df = df.sort(by="dataset_size", descending=False)
+        df = df.sort(by=["dataset_size", "num_examples"], descending=False)
         print(df)
-        if write_tsv:            
+        if write_tsv:
             df.write_csv(outfile_name, include_header=True, separator="\t")
             print("Output written to file:", outfile_name)
