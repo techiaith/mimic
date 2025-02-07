@@ -27,6 +27,16 @@ def _get_tokenizer(
     return tokenizer
 
 
+def _make_chatbot_conversation(
+    user_message: str, system_message: str = ""
+) -> list[dict[str, str]]:
+    messages = []
+    if system_message:
+        messages.append({"role": "system", "content": system_message})
+    messages.append({"role": "user", "content": user_message})
+    return messages
+
+
 def chatbot(
     model_id: str, messages: list[dict[str, str]], max_new_tokens: int = 512
 ) -> t.Any:
@@ -71,13 +81,12 @@ def eval_instructions(
     eval_instructions_en_file: Path,
     autotrain_config_file: Path = typer.Option(default="autotrain.yaml"),
     out_dir: Path = typer.Option(default="evals/output"),
-    system_message_prompt: str = "Answer in Welsh.",
+    system_message: t.Annotated[str, typer.Option()] = "",
 ) -> None:
     autotrain_config = schema.AutoTrainConfig(**srsly.read_yaml(autotrain_config_file))  # type: ignore
     out_dir.mkdir(exist_ok=True)
     out_filename = out_dir / f"{autotrain_config.project_name}.csv"
     out_file = out_dir / out_filename
-    system_message = {"role": "system", "content": system_message_prompt}
     data = collections.defaultdict(list)
     questions = []
     for eval_input_file in (eval_instructions_cy_file, eval_instructions_en_file):
@@ -88,7 +97,8 @@ def eval_instructions(
         for message in questions:
             data["model"].append(model_label)
             data["question"].append(message["content"])
-            replies = chatbot(model, messages=[system_message, message])
+            messages = _make_chatbot_conversation(message["content"], system_message)
+            replies = chatbot(model, messages=messages)
             answer = format_chatbot_reply(replies)
             data["answer"].append(answer)
     df = polars.DataFrame(data)

@@ -1,0 +1,17 @@
+dataset	dataset_size	languages	licenses	task_ids	task_categories	num_examples	note
+projecte-aina/COPA-ca	138993	ca	cc-by-sa-4.0	natural-language-inference	""	1000	Commonsense reasoning
+projecte-aina/mgsm_ca	146588	ca	mit	""	question-answering	258	Question Answering
+projecte-aina/wnli-ca	179883	ca	cc-by-4.0	natural-language-inference	text-classification	852	Textual entailmen
+projecte-aina/openbookqa_ca	209438	ca	cc-by-4.0	""	question-answering,multiple-choice	1000	Question Answering
+projecte-aina/siqa_ca	437110	ca	cc-by-4.0	""	question-answering,multiple-choice	1954	Multiple Choice Question Answering
+projecte-aina/piqa_ca	527185	ca	afl-3.0	""	question-answering,multiple-choice	1838	Multiple Choice Question Answering
+projecte-aina/xstorycloze_ca	695279	ca	cc-by-4.0	""	question-answering,multiple-choice,text-generation	1871	"Multiple Choice Commonsense Reasoning
+"
+projecte-aina/xquad-ca	1285453	ca	cc-by-sa-4.0	extractive-qa	question-answering	1189	Cross-lingual-QA, Extractive-QA
+projecte-aina/xnli-ca	1424821	ca	cc-by-nc-4.0	natural-language-inference	text-classification	7500	Textual entailment
+nbel/CatCoLA	2341916	ca	cc-by-sa-4.0	""	""	0	N/A
+projecte-aina/teca	4041919	ca	cc-by-nc-nd-4.0	natural-language-inference	text-classification	21163	Textual entailment
+projecte-aina/Parafraseja	4672697	ca	cc-by-nc-nd-4.0	multi-input-text-classification	text-classification	21984	Paraphrase
+projecte-aina/PAWS-ca	14174359	ca	other	""	text-classification	53400	Paraphrase Identification
+projecte-aina/CoQCat	21365645	ca	cc-by-nc-nd-4.0	dialogue-generation,extractive-qa,closed-domain-qa	question-answering	6000	Conversational QA
+projecte-aina/catalanqa	22110597	ca	cc-by-sa-4.0	extractive-qa	question-answering	21427	QA dataset

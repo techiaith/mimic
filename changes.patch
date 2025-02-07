@@ -1,0 +1,25 @@
+diff --git a/src/techiaith/mimic/cli.py b/src/techiaith/mimic/cli.py
+index 12f6dd2..703acd1 100644
+--- a/src/techiaith/mimic/cli.py
++++ b/src/techiaith/mimic/cli.py
+@@ -12,6 +12,11 @@ app.add_typer(inference.app, name="inference")
+ train = typer.Typer()
+ app.add_typer(train, name="train")
+ 
++@train.command()
++def project_name(base_model_id: str) -> None:
++    print(utils.autotrain_project_name_for_model_id(base_model_id))
++
++
+ @train.command()
+ def setup(base_model_id: str) -> None:
+     params = srsly.read_yaml("params.yaml")
+@@ -21,7 +26,7 @@ def setup(base_model_id: str) -> None:
+ 
+ 
+ @train.command()
+-def upload_model_to_hf(name_suffix: str = "ctp-cy"):
++def upload_model_to_hf(name_suffix: str = "ctp-cy") -> None:
+     repo_id = utils.techiaith_model_name()
+     model_path = utils.trained_model_path()
+     token_path = Path("~/.cache/huggingface/token").expanduser()
