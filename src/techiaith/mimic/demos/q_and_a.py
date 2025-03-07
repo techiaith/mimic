@@ -5,7 +5,7 @@ import jsonlines
 import gradio as gr
 import typer
 
-from .inference import chatbot
+from ..inference import chatbot
 
 example_system_prompts: list[list[str]] = []
 for language in ("Welsh", "English"):
