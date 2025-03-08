@@ -1,32 +1,16 @@
-import itertools
-import os
 import typing as t
+from collections import defaultdict
 from pathlib import Path
 
 import jsonlines
-import polars
+import langcodes
+import polars as pl
 import srsly
 import typer
 from datasets import Dataset, concatenate_datasets, load_dataset
 
-from . import dataset_metadata, schema
-from .utils import autotrain_project_name_for_model_id
-
-
-def _parse_train_args(train_args: list[str]) -> dict[str, t.Any]:
-    args = []
-    for idx, arg in enumerate(train_args[:]):
-        if (idx + 1) < len(train_args):
-            next_arg = train_args[idx + 1]
-        else:
-            next_arg = ""
-        if arg.startswith("--"):
-            args.append(arg[2:])
-            if next_arg.startswith("--"):
-                args.append("true")
-        else:
-            args.append(arg)
-    return dict(item for item in itertools.pairwise(args) if item[0].startswith("--"))
+from . import dataset_metadata
+from .schema import DataSources
 
 
 def write(data_file: Path, items: t.Iterable[dict[str, str]] | Dataset) -> None:
@@ -36,90 +20,89 @@ def write(data_file: Path, items: t.Iterable[dict[str, str]] | Dataset) -> None:
             writer.write_all(items)
 
 
-def generate_items(
-    dataset: t.Any, text_column: str, split: str | None = None
-) -> t.Iterator[dict[str, str]]:
-    items = dataset[split] if split is not None else dataset
-    for entry in items:
-        yield {"text": entry[text_column]}
+def concatenate(datasets: list[Dataset]) -> Dataset:
+    """Concatenate datasets.
 
-
-def configure_autotrain(
-    dataset_dir: Path,
-    base_model: str,
-    task: str,
-    push_to_hub: bool = False,
-    **train_params,
-) -> schema.AutoTrainConfig:
-    hf_username = os.environ.get("HF_USER")
-    hf_token = os.environ.get("HF_TOKEN")
-    hub = schema.Hub(username=hf_username, token=hf_token, push_to_hub=push_to_hub)
-    params = schema.TrainParams(**train_params)  # type: ignore
-    project_name = autotrain_project_name_for_model_id(base_model)
-    cfg = schema.AutoTrainConfig(
-        base_model=base_model,
-        project_name=project_name,
-        task=task,
-        data=schema.DataConfig(path=str(dataset_dir)),
-        hub=hub,
-        params=params,
-    )
-    return cfg
-
-
-def build_ctp_dataset(datasources_config: Path) -> Dataset:
-    data_sources = schema.DataSources(**srsly.read_yaml(datasources_config))  # type: ignore
-    datasets = []
-    for dataset_spec in data_sources.datasets:
-        ds = load_dataset(dataset_spec.path, name=dataset_spec.config_name)
-        ds = ds[dataset_spec.split].rename_column(dataset_spec.text_column, "text")  # type: ignore
-        ds = ds.remove_columns(set(ds.column_names) - {"text"})  # type: ignore
-        datasets.append(ds)
-    for dataset_spec in data_sources.parallel_sentences:
-        df = polars.read_csv(dataset_spec.path, separator="\t")
-        df = df.rename({dataset_spec.text_column: "text"})
-        df = df.drop(*tuple(set(df.columns) - {"text"}))
-        ds = Dataset.from_polars(df)
-        datasets.append(ds)
-    # cast all datasets to have homogenous types (features) so they can be concatenated.
-    # d_type: string vs d_type: large_string.
+    Casts all datasets to have homogenous types (features) so they can be concatenated.
+    """
     features = datasets[-1].features
-    homogenous_datasets = [ds.cast(features) for ds in datasets[:-1]]
+    homogenous_datasets = [dataset.cast(features) for dataset in datasets[:-1]]
     homogenous_datasets.append(datasets[-1])
     return concatenate_datasets(homogenous_datasets)
 
 
+def build_monolingual_dataset(data_sources: DataSources) -> Dataset:
+    datasets = []
+    for dataset_spec in data_sources.datasets:
+        dataset_dict = load_dataset(dataset_spec.path, name=dataset_spec.config_name)
+        dataset = (
+            dataset_dict[dataset_spec.split]
+            .rename_column(dataset_spec.text_column, "text")
+            .select_columns(["text"])
+        )
+        datasets.append(dataset)
+    for datasource_spec in data_sources.parallel_sentences:
+        df = pl.read_csv(datasource_spec.path, separator="\t")
+        dataset = (
+            Dataset.from_polars(df)
+            .rename_column(datasource_spec.text_column, "text")
+            .select_columns(["text"])
+        )
+        datasets.append(dataset)
+    return concatenate(datasets)
+
+
+def build_bilingual_dataset(
+    data_sources: DataSources,
+    src_lang: langcodes.Language,
+    trg_lang: langcodes.Language,
+) -> Dataset:
+    datasets = []
+    text_template = "{}: {}\n{}: {}"
+    data = defaultdict(list)
+    src_lang_name, trg_lang_name = src_lang.language_name(), trg_lang.language_name()
+    for dataset_spec in data_sources.datasets:
+        dataset_dict = load_dataset(dataset_spec.path, name=dataset_spec.config_name)
+        dataset = dataset_dict[dataset_spec.split]
+        dataset = dataset.select_columns(
+            [dataset_spec.text_column, dataset_spec.target_column]
+        )
+        texts = dataset[dataset_spec.text_column]
+        translations = dataset[dataset_spec.target_column]
+        for text, translation in zip(texts, translations, strict=True):
+            text = text_template.format(src_lang_name, text, trg_lang_name, translation)
+            data["text"].append(text)
+        dataset = Dataset.from_dict(data)
+        datasets.append(dataset)
+    return concatenate(datasets)
+
+
+def build_dataset(
+    datasources_config: Path, src_lang: str = "", trg_lang: str = ""
+) -> Dataset:
+    langs = {
+        lang: langcodes.Language.get(lang) for lang in (src_lang, trg_lang) if lang
+    }
+    if langs:
+        return build_bilingual_dataset(
+            datasources_config, langs[src_lang], langs[trg_lang]
+        )
+    return build_monolingual_dataset(datasources_config)
+
+
 app = typer.Typer()
-ctp = typer.Typer()
-app.add_typer(ctp, name="ctp")
 app.add_typer(dataset_metadata.app, name="metadata")
 
 
-@ctp.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
-)
-def configure(
-    ctx: typer.Context,
-    config: typer.FileTextWrite = typer.Option(...),
-    base_model: str = typer.Option(default="meta-llama/Meta-Llama-3-8B-Instruct"),
-    dataset_dir: Path = typer.Option(default="data/dataset"),
-    task: str = typer.Option(default="llm"),
-    push_to_hub: bool = typer.Option(default=False),
-) -> None:
-    train_params = _parse_train_args(ctx.args)
-    at_config = configure_autotrain(
-        dataset_dir, base_model, task, push_to_hub=push_to_hub, **train_params
-    )
-    config.write(srsly.yaml_dumps(at_config.model_dump()))
-
-
-@ctp.command()
+@app.command()
 def build(
-    ctx: typer.Context,
     datasources_config: Path = typer.Option(default="data-sources.yaml"),
     dataset_dir: Path = typer.Option(default="data/dataset"),
     dataset_filename: str = typer.Option(default="train.jsonl"),
+    src_lang: str = "",
+    trg_lang: str = "",
 ) -> None:
     dataset_dir.mkdir(exist_ok=True)
-    dataset = build_ctp_dataset(datasources_config)
+    data_sources = DataSources(**srsly.read_yaml(datasources_config))
+    dataset = build_dataset(data_sources, src_lang=src_lang, trg_lang=trg_lang)
     write(dataset_dir / dataset_filename, dataset)

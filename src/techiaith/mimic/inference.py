@@ -10,7 +10,7 @@ import torch
 import transformers
 import typer
 
-from . import schema
+from .schema import AutoTrainConfig
 
 START_INSTRUCTION: str = "[INST]"
 END_INSTRUCTION: str = "[/INST]"
@@ -83,7 +83,7 @@ def eval_instructions(
     out_dir: Path = typer.Option(default="evals/output"),
     system_message: t.Annotated[str, typer.Option()] = "",
 ) -> None:
-    autotrain_config = schema.AutoTrainConfig(**srsly.read_yaml(autotrain_config_file))  # type: ignore
+    autotrain_config = AutoTrainConfig(**srsly.read_yaml(autotrain_config_file))  # type: ignore
     out_dir.mkdir(exist_ok=True)
     out_filename = out_dir / f"{autotrain_config.project_name}.csv"
     out_file = out_dir / out_filename

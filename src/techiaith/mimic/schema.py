@@ -4,28 +4,6 @@ from pathlib import Path
 import pydantic
 
 
-class FormatOperation(pydantic.BaseModel):
-    out_dir: Path
-    training_config: Path
-
-
-class Message(pydantic.BaseModel):
-    role: t.Literal["system"] | t.Literal["user"]
-    content: str
-
-
-class Conversation(pydantic.BaseModel):
-    messages: list[Message]
-
-
-class Segment(pydantic.BaseModel):
-    text: str
-
-
-class EvalInstruction(pydantic.BaseModel):
-    instruction: str
-
-
 class ColumnMapping(pydantic.BaseModel):
     text_column: str = "text"
     prompt_text_column: str | None = None  # e.g "question"
@@ -39,16 +17,16 @@ class DataConfig(pydantic.BaseModel):
     column_mapping: ColumnMapping = ColumnMapping()
 
 
-class Hub(pydantic.BaseModel):
+class HubConfig(pydantic.BaseModel):
     username: str | None = None
     token: str | None = None
     push_to_hub: bool = False
 
 
-class TrainParams(pydantic.BaseModel):
+class TrainingParams(pydantic.BaseModel):
     block_size: int = 2048
     model_max_length: int = 8192
-    epochs: int = 2
+    epochs: int = 4
     batch_size: int = 1
     lr: float = 1e-5
     peft: bool = True
@@ -66,26 +44,25 @@ class AutoTrainConfig(pydantic.BaseModel):
     base_model: str
     project_name: str
     task: str
-    data: DataConfig    
-    hub: Hub
-    params: TrainParams
+    data: DataConfig
+    hub: HubConfig
+    params: TrainingParams
     log: str = "dvclive"
     backend: str = "local"
     model_config = pydantic.ConfigDict(extra="allow")
 
 
-class DatasetSource(pydantic.BaseModel):
+class DataSource(pydantic.BaseModel):
     path: str
     text_column: str = "text"
-    split: str = "train"
+    target_column: str | None = None
+
+
+class DatasetSource(DataSource):
     config_name: str = "default"
-
-
-class TSVSource(pydantic.BaseModel):
-    path: str
-    text_column: str = "text"
+    split: str = "train"
 
 
 class DataSources(pydantic.BaseModel):
     datasets: list[DatasetSource] = []
-    parallel_sentences: list[TSVSource] = []
+    parallel_sentences: list[DataSource] = []
