@@ -12,11 +12,6 @@ import typer
 
 from .schema import AutoTrainConfig
 
-START_INSTRUCTION: str = "[INST]"
-END_INSTRUCTION: str = "[/INST]"
-SENT_START: str = "<s>"
-SENT_END: str = "</s>"
-
 
 def _get_tokenizer(
     model_id: str,
@@ -75,7 +70,6 @@ def _chatbot(model_id: str, conversation: str) -> None:
 
 @app.command()
 def eval_instructions(
-    ctx: typer.Context,
     trained_model: Path,
     eval_instructions_cy_file: Path,
     eval_instructions_en_file: Path,
