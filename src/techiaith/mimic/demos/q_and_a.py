@@ -14,6 +14,7 @@ for language in ("Welsh", "English"):
         [f"You must answer in {language}, be brief and do not elaborate"]
     )
 
+
 class Defaults(t.NamedTuple):
     model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct"
     system_prompt: str = example_system_prompts[0][0]
