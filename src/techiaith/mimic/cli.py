@@ -3,11 +3,12 @@ from pathlib import Path
 import srsly
 import typer
 
-from . import dataset, inference
+from . import dataset, evals, inference
 from .utils import autotrain_project_name, configure_autotrain, parse_training_args
 
 app = typer.Typer()
 app.add_typer(dataset.app, name="dataset")
+app.add_typer(evals.app, name="evals")
 app.add_typer(inference.app, name="inference")
 
 train = typer.Typer()

@@ -1,5 +1,5 @@
+import enum
 import typing as t
-from pathlib import Path
 
 import pydantic
 
@@ -66,3 +66,8 @@ class DatasetSource(DataSource):
 class DataSources(pydantic.BaseModel):
     datasets: list[DatasetSource] = []
     parallel_sentences: list[DataSource] = []
+
+
+class ModelProvider(str, enum.Enum):
+    anthropic = "anthropic"
+    transformers = "transformers"
