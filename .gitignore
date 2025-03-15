@@ -60,8 +60,7 @@ cover/
 *_data*/
 
 # Python tooling.
-/.venv*
-/.vscode
+/.venv/
 /.mypy*
 /build/
 
