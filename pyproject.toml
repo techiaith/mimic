@@ -4,9 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "techiaith-mimic"
-version = "2025.1.28-dev2"
+version = "2025.3.15-dev"
 requires-python = "== 3.10.*"
-dynamic = ["dependencies"]
 keywords = ["LLM", "MT", "translation", "inference", "training"]
 description = "A aibrary and CLI for performing experiments with LLMs."
 classifiers = [
@@ -19,9 +18,26 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
 ]
-
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
+dependencies = [
+  "anthropic>=0.46",
+  "autotrain-advanced>=0.8",
+  "datachain>=0.7",
+  "datasets>=3.2",
+  "dvclive>=3.48",
+  "gradio>=5.13",
+  "jsonlines>=4.0",
+  "langcodes>=3.5",
+  "lm-eval[api,hf-transfer,multilingual,zeno]==0.4.8",
+  "ninja>=1.11.1.2",
+  "openai>=1.64",
+  "openevals>=0.0.7",
+  "polars>=1.17.1",
+  "pydantic>=2.10.4",
+  "srsly==2.5.0",
+  "triton==3.1.0",
+  "typer>=0.15",
+  "unsloth==2024.12.4",
+]
 
 [tool.setuptools.package-data]
 "techiaith.mimic" = ["*.md", "*.jsonl"]
@@ -54,6 +70,7 @@ test = ["pytest-cov", "pytest"]
 
 [project.scripts]
 mimic = "techiaith.mimic.cli:app"
+lm-eval = "lm_eval.__main__:cli_evaluate"
 
 [tool.setuptools]
 license-files = ["LICENSE"]
@@ -70,24 +87,12 @@ namespace_packages = true
 no_implicit_optional = true
 plugins = ["pydantic.mypy"]
 
-[tool.black]
-include = "\\.pyi?$"
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
-[tool.pyright]
-reportPrivateImportUsage = false
-
 [tool.pytest.ini_options]
 filterwarnings = [
   "ignore:.*imp module.*deprecated",
   "ignore:.*invalid escape sequence:DeprecationWarning",
   "ignore:.*declare_namespace.*ruamel:DeprecationWarning",
 ]
-[[tool.pytest.ini_options.markers]]
-issue = "reference specific issue"
 
 [tool.coverage.run]
 branch = true
